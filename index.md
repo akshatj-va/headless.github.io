@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Salesforce Headless Identity PoC</title>
+        <script src="/utils.js"></script>
+        <link rel="stylesheet" href="/styles.css">
+    </head>
+    <body>
+        <div class="visible" id="login">
+            <h1>Login</h1>
+            <label for="username">Username </label><input type="text" name="username" id="username" value="akshat.jain+okta@visiblealpha.com">
+            <label for="password">Password </label><input type="text" name="password" id="password" value="Alpha@1234">
+            <input type="submit" value="Login" id="loginBtn">
+        </div>
+        <div id="userdata" class="hidden">
+            <pre id="userinfo"></pre>
+        </div>
+    </body>
+    <script>
+        let access_token;
+        let userinfo;
+        const clientId = "3MVG96yD8KRvY2.GpTKfVJB_69VpgvdleDQHaoYTyDT8r9263D1Ei3.7cHzSg4s0wgALT2.3hEQuY1dWM86gS";
+        const baseUrl = "https://visiblealpha--full.sandbox.my.site.com";
+        const redirectURL = `${baseUrl}/services/apexrest/code/extraction`;
+        
+        $("loginBtn").addEventListener("click", async ev => {
+            ev.preventDefault = true;
+            const u = $("username").value;
+            const p = $("password").value;
+
+            // pkce
+            const challengeMethod = "S256";
+            const codeVerifier = generateRandomString(64);
+            const codeChallenge = await generateCodeChallenge(codeVerifier);
+
+            // authenticate user
+            const codeResp = await fetch(`${baseUrl}/services/oauth2/authorize`, {
+                headers: {
+                    "Auth-Request-Type": "Named-User",
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                method: "post",
+                body: `code_challenge_method=${challengeMethod}&code_challenge=${codeChallenge}&response_type=code_credentials&client_id=${clientId}&redirect_uri=${redirectURL}&username=${u}&password=${p}`
+            })
+            const codeBody = await codeResp.json();
+            console.log("codeBody", codeBody);
+            
+            // exchange code for access_token
+            const tokenResp = await fetch(`${codeBody.sfdc_community_url}/services/oauth2/token`, {
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                method: "post",
+                body: `code=${codeBody.code}&code_verifier=${codeVerifier}&grant_type=authorization_code&client_id=${clientId}&redirect_uri=${redirectURL}`
+            })
+            const tokenBody = await tokenResp.json();
+            console.log("tokenBody", tokenBody);
+
+            // get access_token
+            access_token = tokenBody.access_token;
+
+            // get userinfo
+            const userinfoResp = await fetch(`${codeBody.sfdc_community_url}/services/oauth2/userinfo`, {
+                headers: {
+                    "Accept": "application/json",
+                    "Authorization": `Bearer ${access_token}`
+                }
+            });
+            userinfo = await userinfoResp.json();
+
+            // show
+            $("userinfo").innerText = JSON.stringify(userinfo, undefined, 2);
+            hide("login");
+            show("userdata");
+
+            // allow open of Salesforce if not a JWT access_token
+            if (!access_token.startsWith("ey")) {
+                const i = document.createElement("input");
+                i.setAttribute("type", "button");
+                i.setAttribute("value", "Salesforce");
+                $("userdata").appendChild(i).addEventListener("click", ev => {
+                    window.open(`${codeBody.sfdc_community_url}/secur/frontdoor.jsp?sid=${access_token}&&retURL=/`)
+                })
+            }
+        })
+
+
+    </script>
+</html>
