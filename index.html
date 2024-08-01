@@ -35,15 +35,17 @@
                 const challengeMethod = "S256";
                 const codeVerifier = generateRandomString(64);
                 const codeChallenge = await generateCodeChallenge(codeVerifier);
+                const base64Encoded = btoa(`${u}:${p}`);
     
                 // authenticate user
                 const codeResp = await fetch(`${baseUrl}/services/oauth2/authorize`, {
                     headers: {
                         "Auth-Request-Type": "Named-User",
-                        "Content-Type": "application/x-www-form-urlencoded"
+                        "Content-Type": "application/x-www-form-urlencoded",
+                        "Authorization": `Basic ${base64Encoded}`
                     },
                     method: "post",
-                    body: `code_challenge_method=${challengeMethod}&code_challenge=${codeChallenge}&response_type=code_credentials&client_id=${clientId}&redirect_uri=${redirectURL}&username=${u}&password=${p}`
+                    body: `code_challenge_method=${challengeMethod}&code_challenge=${codeChallenge}&response_type=code_credentials&client_id=${clientId}&redirect_uri=${redirectURL}`
                 })
                 const codeBody = await codeResp.json();
                 console.log("codeBody", codeBody);
