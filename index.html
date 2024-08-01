@@ -12,21 +12,21 @@
             <h1>Login</h1>
             <label for="username">Username </label><input type="text" name="username" id="username" value="akshat.jain+okta@visiblealpha.com">
             <label for="password">Password </label><input type="text" name="password" id="password" value="Alpha@1234">
-            <input type="submit" value="Login" id="loginBtn">
+            <input type="submit" value="Login" id="loginBtn" onclick="login()">
         </div>
         <div id="userdata" class="hidden">
             <pre id="userinfo"></pre>
         </div>
     </body>
     <script>
-        $(document).ready(function(){
-             let access_token;
+        function login(ev) {
+            let access_token;
             let userinfo;
             const clientId = "3MVG96yD8KRvY2.GpTKfVJB_69VpgvdleDQHaoYTyDT8r9263D1Ei3.7cHzSg4s0wgALT2.3hEQuY1dWM86gS";
             const baseUrl = "https://visiblealpha--full.sandbox.my.site.com";
             const redirectURL = `${baseUrl}/services/apexrest/code/extraction`;
             
-            $("loginBtn").addEventListener("click", async ev => {
+            // $("loginBtn").addEventListener("click", async ev => {
                 ev.preventDefault = true;
                 const u = $("username").value;
                 const p = $("password").value;
@@ -85,7 +85,7 @@
                         window.open(`${codeBody.sfdc_community_url}/secur/frontdoor.jsp?sid=${access_token}&&retURL=/`)
                     })
                 }
-            })
-        });
+            //})
+        }
     </script>
 </html>
