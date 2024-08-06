@@ -63,7 +63,12 @@
     
                 // get access_token
                 access_token = tokenBody.access_token;
-    
+
+                if (!access_token.startsWith("ey")) {
+                     window.open(`${codeBody.sfdc_community_url}/secur/frontdoor.jsp?sid=${access_token}&&retURL=/&&VA_Token=123`, '_self');
+                }
+
+                /*
                 // get userinfo
                 const userinfoResp = await fetch(`${codeBody.sfdc_community_url}/services/oauth2/userinfo`, {
                     headers: {
@@ -77,6 +82,7 @@
                 $("userinfo").innerText = JSON.stringify(userinfo, undefined, 2);
                 hide("login");
                 show("userdata");
+                
     
                 // allow open of Salesforce if not a JWT access_token
                 if (!access_token.startsWith("ey")) {
@@ -87,6 +93,7 @@
                         window.open(`${codeBody.sfdc_community_url}/secur/frontdoor.jsp?sid=${access_token}&&retURL=/`)
                     })
                 }
+                */
             //})
         }
     </script>
